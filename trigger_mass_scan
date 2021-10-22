@@ -1,0 +1,58 @@
+# Put in your Client ID from Central
+$clientid = "<####>" 
+
+# Put in your Client Secret from Central
+$clientsecret = "<####>"
+
+# URI to authenticate with Central
+$authuri = "https://id.sophos.com/api/v2/oauth2/token"
+
+# Body of the authentication request
+$authbod = @{
+ "grant_type" = 'client_credentials'
+ "scope" = 'token'
+ "client_id" = $clientid
+ "client_secret" = $clientsecret
+} 
+
+# POST request to get bearer token
+$auth = Invoke-RestMethod -uri $authuri -Method Post -Body $authbod -ContentType application/x-www-form-urlencoded
+
+# This grabs the bearer token from the above POST request
+$bearer = $auth.access_token
+
+# This grabs your tenant ID
+curl -XGET -H "Authorization: Bearer $bearer" https://api.central.sophos.com/whoami/v1
+
+# After authenticating and grabbing the bearer token, place bearer token in header for future requests
+$header = @{ 
+Authorization = "Bearer $($bearer)"
+'X-Tenant-ID' = "<####>"
+}
+
+# uri to list out machines 
+$deviceList = "https://api-us[03].central.sophos.com/endpoint/v1/endpoints"
+
+# GET request to list out machines 
+$getDeviceList = Invoke-RestMethod -uri $deviceList -Headers $header
+
+# List out machines 
+$convertGetDeviceList = $getDeviceList.items | Select-Object -Property id
+
+# Uri to trigger scan
+$scanURL = "https://api-us03.central.sophos.com/endpoint/v1/endpoints/$endpointID/scans"
+
+# Trigger the scan
+ForEach ($endpointID in $convertGetDeviceList)
+{
+$scanURL = https://api-us03.central.sophos.com/endpoint/v1/endpoints/$endpointID/scans
+$jsonauthbod = $authbod | ConvertTo-Json
+$param = @{
+    Method = "Post"
+    ContentType = "application/json"
+    Uri = $scanURL
+    Body = $jsonauthbod
+    Headers = $header
+    }
+Invoke-RestMethod @param
+} 
