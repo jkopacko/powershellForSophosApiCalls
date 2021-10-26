@@ -1,13 +1,16 @@
-# Put in your Client ID from Central
-$clientid = "<####>" 
+ #enter your Client ID from Central
+$clientid = "<###>"
 
-# Put in your Client Secret from Central
-$clientsecret = "<####>"
+#enter your Client Secret from Central
+$clientsecret = "<###>"
 
-# URI to authenticate with Central
+ #uri to authenticate with Central
 $authuri = "https://id.sophos.com/api/v2/oauth2/token"
 
-# Body of the authentication request
+#uri to get tenant ID
+$whoami_uri = "https://api.central.sophos.com/whoami/v1"
+
+#this is the full body of the authentication request
 $authbod = @{
  "grant_type" = 'client_credentials'
  "scope" = 'token'
@@ -15,44 +18,43 @@ $authbod = @{
  "client_secret" = $clientsecret
 } 
 
-# POST request to get bearer token
+#this will send your bearer token request
 $auth = Invoke-RestMethod -uri $authuri -Method Post -Body $authbod -ContentType application/x-www-form-urlencoded
 
-# This grabs the bearer token from the above POST request
+#this will extract your bearer token for later use
 $bearer = $auth.access_token
 
-# This grabs your tenant ID
-curl -XGET -H "Authorization: Bearer $bearer" https://api.central.sophos.com/whoami/v1
+#this stores the token in a readable variable 
+$headers = @{Authorization="Bearer $bearer"}
 
-# After authenticating and grabbing the bearer token, place bearer token in header for future requests
-$header = @{ 
-Authorization = "Bearer $($bearer)"
-'X-Tenant-ID' = "<####>"
-}
+#this will send your whoami request for tenant identification
+$whoami = Invoke-RestMethod -uri $whoami_uri -Method Get -Headers $headers 
 
-# uri to list out machines 
-$deviceList = "https://api-us[03].central.sophos.com/endpoint/v1/endpoints"
+#this formats your tenant ID for later use
+$tenantID = $whoami.id
 
-# GET request to list out machines 
+#uri to list out machines 
+$deviceList = $whoami.apiHosts.dataRegion + "/endpoint/v1/endpoints"
+
+#this sends a request to return all endpoints 
 $getDeviceList = Invoke-RestMethod -uri $deviceList -Headers $header
 
-# List out machines 
+#this converts your device list into a readable list
 $convertGetDeviceList = $getDeviceList.items | Select-Object -Property id
 
-# Uri to trigger scan
-$scanURL = "https://api-us03.central.sophos.com/endpoint/v1/endpoints/$endpointID/scans"
+#uri to trigger scan
+$scanURL = $whoami.apiHosts.dataRegion + "/endpoint/v1/endpoints/" + $endpointID + "/scans"
 
-# Trigger the scan
+#trigger the scan
 ForEach ($endpointID in $convertGetDeviceList)
 {
-$scanURL = https://api-us03.central.sophos.com/endpoint/v1/endpoints/$endpointID/scans
 $jsonauthbod = $authbod | ConvertTo-Json
 $param = @{
     Method = "Post"
     ContentType = "application/json"
     Uri = $scanURL
     Body = $jsonauthbod
-    Headers = $header
+    Headers = $headers
     }
 Invoke-RestMethod @param
-} 
+}  
