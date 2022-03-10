@@ -53,7 +53,7 @@ $param = @{
     Method = "Post"
     ContentType = "application/json"
     Uri = $scanURL
-    Body = $jsonauthbod
+    Body = {}
     Headers = $headers
     }
 Invoke-RestMethod @param
