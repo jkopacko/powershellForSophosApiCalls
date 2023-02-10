@@ -1,7 +1,7 @@
 ##########################
 ####
 # Author: @jkopacko - 2023
-# Version: 1.01
+# Version: 1.02
 # Comments: this logic stores a list of IDs of endpoints with bad or suspicious health, v1 only isolates a single ID that is manually enter in line 42. In v1.1, I will add in the for-each logic to trigger on the list(s) of endpoints. In v1.2, I will salt/secure the storage.
 ####
 #########################
@@ -18,6 +18,8 @@ $header = @{Authorization="Bearer $($tokenReply.access_token)"}
 ## This will return your tenant ID
 $whoami_resp = Invoke-RestMethod -Method Get -Headers $header https://api.central.sophos.com/whoami/v1
 $tenantID = $whoami_resp.id
+$header = @{Authorization="Bearer $($tokenReply.access_token)"; "X-Tenant-ID"=$tenantID}
+
 ## This will extract your Central API region
 $apiRegion = $whoami_resp.apiHosts.dataRegion
 
