@@ -1,7 +1,7 @@
 ##########################
 ####
 # Author: @jkopacko - 2023
-# Version: 1.0
+# Version: 1.01
 # Comments: this logic stores a list of IDs of endpoints with bad or suspicious health, v1 only isolates a single ID that is manually enter in line 42. In v1.1, I will add in the for-each logic to trigger on the list(s) of endpoints. In v1.2, I will salt/secure the storage.
 ####
 #########################
@@ -13,7 +13,7 @@ $clientSecret = "<SECRET>"
 ## This will authenticate to Sophos API 
 $tokenReply = Invoke-RestMethod -Method Post -ContentType "application/x-www-form-urlencoded" -Body "grant_type=client_credentials&client_id=$clientID&client_secret=$clientSecret&scope=token" -uri https://id.sophos.com/api/v2/oauth2/token
 $bearerToken = $tokenReply.access_token
-$header = @{Authorization="Bearer $($tokenReply.access_token)"; "X-Tenant-ID"=$tenantID}
+$header = @{Authorization="Bearer $($tokenReply.access_token)"}
 
 ## This will return your tenant ID
 $whoami_resp = Invoke-RestMethod -Method Get -Headers $header https://api.central.sophos.com/whoami/v1
