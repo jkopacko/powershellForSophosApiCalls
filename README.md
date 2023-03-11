@@ -1,4 +1,4 @@
-# Powershell API Scripts
+# Sophos Powershell API Scripts
 
 This will serve as a storage means for any scripts created using Sophos Central API and Powershell.
 
